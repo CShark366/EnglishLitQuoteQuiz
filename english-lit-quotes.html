@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>English Lit Quote Trainer — WJEC Eduqas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0d0b;
+      --surface: #181714;
+      --surface2: #211f1b;
+      --border: rgba(255,255,255,0.08);
+      --border-hover: rgba(255,255,255,0.18);
+      --text: #f0ece4;
+      --text-muted: #8a8478;
+      --text-faint: #504d47;
+      --accent: #c8a96e;
+      --accent-dark: #8a7045;
+      --red: #c8503a;
+      --red-dark: #8c3827;
+      --green: #5a9a6e;
+      --green-bg: rgba(90,154,110,0.12);
+      --red-bg: rgba(200,80,58,0.12);
+      --blue: #5a8fc8;
+      --blue-bg: rgba(90,143,200,0.12);
+      --purple: #9a6ec8;
+      --purple-bg: rgba(154,110,200,0.12);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Subtle grain texture */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size: 180px;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.6;
+    }
+
+    .wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+
+    header {
+      margin-bottom: 2.5rem;
+      animation: fadeUp 0.5s ease both;
+    }
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+    header h1 em { color: var(--accent); font-style: italic; }
+    header p {
+      margin-top: 0.5rem;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      font-weight: 300;
+    }
+
+    /* ── Score bar ── */
+    .score-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 2rem;
+      animation: fadeUp 0.5s 0.05s ease both;
+    }
+    .score-label { font-size: 0.75rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.08em; }
+    .score-val { font-size: 0.875rem; font-weight: 500; color: var(--accent); }
+    .score-track { flex: 1; height: 2px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+    .score-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.4s ease; width: 0%; }
+
+    /* ── Section label ── */
+    .section-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-faint);
+      margin-bottom: 0.75rem;
+      font-weight: 500;
+    }
+
+    /* ── Subject grid ── */
+    .subject-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 2rem;
+      animation: fadeUp 0.5s 0.1s ease both;
+    }
+    @media (min-width: 480px) { .subject-grid { grid-template-columns: repeat(4, 1fr); } }
+
+    .subject-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.1rem 0.9rem;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s, transform 0.15s;
+      text-align: center;
+      user-select: none;
+    }
+    .subject-card:hover { border-color: var(--border-hover); background: var(--surface2); transform: translateY(-1px); }
+    .subject-card.active { border-color: var(--accent); background: rgba(200,169,110,0.08); }
+    .subject-card .icon { font-size: 1.4rem; margin-bottom: 0.4rem; display: block; }
+    .subject-card .name { font-size: 0.78rem; font-weight: 500; color: var(--text); line-height: 1.3; }
+
+    /* ── Character / poem buttons ── */
+    .char-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 8px;
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.4s ease both;
+    }
+    .char-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.65rem 0.8rem;
+      cursor: pointer;
+      text-align: left;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      color: var(--text);
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .char-btn:hover { border-color: var(--border-hover); background: var(--surface2); }
+    .char-btn.active { border-color: var(--blue); background: var(--blue-bg); color: #a0c4ef; }
+    .char-btn .char-role { font-size: 0.68rem; color: var(--text-faint); display: block; margin-top: 2px; }
+
+    .poem-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+      gap: 8px;
+      margin-bottom: 1.5rem;
+      max-height: 260px;
+      overflow-y: auto;
+      padding-right: 4px;
+      animation: fadeUp 0.4s ease both;
+    }
+    .poem-grid::-webkit-scrollbar { width: 4px; }
+    .poem-grid::-webkit-scrollbar-track { background: var(--surface); }
+    .poem-grid::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 2px; }
+
+    .poem-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 0.75rem;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.78rem;
+      color: var(--text);
+      text-align: left;
+      line-height: 1.3;
+      transition: border-color 0.15s;
+    }
+    .poem-btn:hover { border-color: var(--border-hover); }
+    .poem-btn.active { border-color: var(--purple); background: var(--purple-bg); color: #c9a8ef; }
+    .poem-btn .poet { font-size: 0.68rem; color: var(--text-faint); display: block; margin-top: 2px; }
+
+    /* ── Back button ── */
+    .back-btn {
+      background: none; border: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem; color: var(--text-muted);
+      cursor: pointer; padding: 0;
+      margin-bottom: 1.25rem;
+      display: flex; align-items: center; gap: 5px;
+      transition: color 0.15s;
+    }
+    .back-btn:hover { color: var(--text); }
+
+    /* ── Progress dots ── */
+    .progress-dots { display: flex; gap: 5px; margin-bottom: 1.25rem; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--surface2); transition: background 0.3s; }
+    .dot.done { background: var(--green); }
+    .dot.current { background: var(--accent); }
+
+    /* ── Question box ── */
+    .question-box {
+      border-left: 2px solid var(--accent);
+      padding: 0.9rem 1.1rem;
+      margin-bottom: 1.25rem;
+      background: var(--surface);
+      border-radius: 0 10px 10px 0;
+      animation: fadeUp 0.3s ease both;
+    }
+    .question-box .q-label {
+      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--accent-dark); font-weight: 500; margin-bottom: 0.35rem;
+    }
+    .question-box .q-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem; color: var(--text); line-height: 1.55;
+    }
+
+    /* ── Quote inputs ── */
+    .hint-text { font-size: 0.75rem; color: var(--text-faint); margin-bottom: 0.9rem; font-style: italic; }
+
+    .quote-slots { display: flex; flex-direction: column; gap: 9px; margin-bottom: 1.1rem; }
+    .quote-slot { display: flex; align-items: flex-start; gap: 9px; }
+    .slot-num {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--surface2); border: 1px solid var(--border);
+      font-size: 0.7rem; font-weight: 500; color: var(--text-muted);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 8px;
+    }
+    .quote-input {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.55rem 0.8rem;
+      font-size: 0.875rem;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      resize: none;
+      min-height: 38px;
+      line-height: 1.5;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .quote-input:focus { outline: none; border-color: var(--border-hover); }
+    .quote-input::placeholder { color: var(--text-faint); }
+    .quote-input.correct { border-color: var(--green); background: var(--green-bg); }
+    .quote-input.incorrect { border-color: var(--red); background: var(--red-bg); }
+
+    /* ── Buttons ── */
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+
+    .btn-check {
+      background: var(--accent); color: #1a1610;
+      border: none; border-radius: 8px;
+      padding: 0.6rem 1.2rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem; font-weight: 500;
+      cursor: pointer; transition: background 0.15s, transform 0.1s;
+    }
+    .btn-check:hover { background: #d4b87a; }
+    .btn-check:active { transform: scale(0.97); }
+
+    .btn-reveal, .btn-next {
+      background: transparent; color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.6rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem; cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-reveal:hover, .btn-next:hover { border-color: var(--border-hover); color: var(--text); }
+
+    /* ── Feedback panel ── */
+    .feedback-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.9rem 1rem;
+      margin-bottom: 1rem;
+      display: none;
+      animation: fadeUp 0.25s ease both;
+    }
+    .feedback-panel.show { display: block; }
+    .feedback-item { margin-bottom: 7px; font-size: 0.82rem; line-height: 1.5; color: var(--text-muted); }
+    .feedback-item:last-child { margin-bottom: 0; }
+    .feedback-item .fb-label { font-weight: 500; color: var(--text); }
+    .feedback-item .answer-text { font-family: 'Playfair Display', serif; font-style: italic; color: var(--text-muted); }
+    .tick { color: var(--green); margin-right: 4px; }
+    .cross { color: var(--red); margin-right: 4px; }
+    .reveal-heading { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-faint); margin-bottom: 8px; font-weight: 500; }
+
+    /* ── Screen system ── */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ── Divider ── */
+    .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: 3rem;
+      font-size: 0.72rem;
+      color: var(--text-faint);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>English Lit <em>Quote Trainer</em></h1>
+    <p>WJEC Eduqas · Macbeth · An Inspector Calls · A Christmas Carol · Poetry</p>
+  </header>
+
+  <div class="score-bar">
+    <span class="score-label">Score</span>
+    <div class="score-track"><div class="score-fill" id="score-fill"></div></div>
+    <span class="score-val" id="score-display">0 / 0</span>
+  </div>
+
+  <!-- HOME -->
+  <div id="screen-home" class="screen active">
+    <div class="section-label">Choose your text</div>
+    <div class="subject-grid">
+      <div class="subject-card" onclick="selectSubject('macbeth', this)">
+        <span class="icon">🗡️</span>
+        <div class="name">Macbeth</div>
+      </div>
+      <div class="subject-card" onclick="selectSubject('inspector', this)">
+        <span class="icon">☎️</span>
+        <div class="name">An Inspector Calls</div>
+      </div>
+      <div class="subject-card" onclick="selectSubject('christmas', this)">
+        <span class="icon">🕯️</span>
+        <div class="name">A Christmas Carol</div>
+      </div>
+      <div class="subject-card" onclick="selectSubject('poetry', this)">
+        <span class="icon">📜</span>
+        <div class="name">Poetry</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHARS / POEMS -->
+  <div id="screen-chars" class="screen">
+    <button class="back-btn" onclick="goHome()">← back to texts</button>
+    <div class="section-label" id="chars-label">Choose a character or theme</div>
+    <div class="char-grid" id="chars-grid"></div>
+    <div id="poem-section" style="display:none">
+      <div class="section-label">Choose a poem</div>
+      <div class="poem-grid" id="poem-grid"></div>
+    </div>
+  </div>
+
+  <!-- QUESTION -->
+  <div id="screen-question" class="screen">
+    <button class="back-btn" onclick="goChars()">← back</button>
+    <div class="progress-dots" id="progress-dots"></div>
+
+    <div class="question-box">
+      <div class="q-label">Question <span id="q-num"></span> of <span id="q-total"></span></div>
+      <div class="q-text" id="q-text"></div>
+    </div>
+
+    <p class="hint-text">Type 3 quotes from memory — close paraphrases count!</p>
+
+    <div class="quote-slots">
+      <div class="quote-slot">
+        <div class="slot-num">1</div>
+        <textarea class="quote-input" id="q1" rows="1" placeholder="Quote 1…" oninput="autoResize(this)"></textarea>
+      </div>
+      <div class="quote-slot">
+        <div class="slot-num">2</div>
+        <textarea class="quote-input" id="q2" rows="1" placeholder="Quote 2…" oninput="autoResize(this)"></textarea>
+      </div>
+      <div class="quote-slot">
+        <div class="slot-num">3</div>
+        <textarea class="quote-input" id="q3" rows="1" placeholder="Quote 3…" oninput="autoResize(this)"></textarea>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-check" onclick="checkQuotes()">Check answers</button>
+      <button class="btn-reveal" onclick="revealAll()">Reveal quotes</button>
+      <button class="btn-next" onclick="nextQuestion()">Next question →</button>
+    </div>
+
+    <div class="feedback-panel" id="feedback-panel"></div>
+  </div>
+
+  <footer>Built for WJEC Eduqas English Literature revision</footer>
+</div>
+
+<script>
+const DATA = {
+  macbeth: {
+    label: "Macbeth — Characters & Themes",
+    chars: [
+      { name: "Macbeth", role: "protagonist" },
+      { name: "Lady Macbeth", role: "antagonist" },
+      { name: "The Witches", role: "supernatural" },
+      { name: "Banquo", role: "foil to Macbeth" },
+      { name: "Duncan", role: "king" },
+      { name: "Macduff", role: "avenger" },
+      { name: "Power & Ambition", role: "theme" },
+      { name: "Guilt", role: "theme" },
+      { name: "Gender", role: "theme" },
+      { name: "Appearance vs Reality", role: "theme" },
+    ],
+    questions: {
+      "Macbeth": [
+        { q: "How does Shakespeare present Macbeth's ambition at the start of the play?", quotes: ["Stars, hide your fires", "I have no spur to prick the sides of my intent", "Vaulting ambition which o'erleaps itself", "Let not light see my black and deep desires"] },
+        { q: "How does Shakespeare present Macbeth's guilt after Duncan's murder?", quotes: ["Will all great Neptune's ocean wash this blood clean from my hand?", "Macbeth shall sleep no more", "O, full of scorpions is my mind", "I am afraid to think what I have done"] },
+        { q: "How does Shakespeare show the decline of Macbeth's character?", quotes: ["I have supped full with horrors", "Life's but a walking shadow", "I have lived long enough", "Out, out brief candle"] },
+      ],
+      "Lady Macbeth": [
+        { q: "How does Shakespeare present Lady Macbeth as powerful and manipulative?", quotes: ["Unsex me here", "Was the hope drunk wherein you dressed yourself?", "Come, thick night", "Look like the innocent flower but be the serpent under't"] },
+        { q: "How does Shakespeare present Lady Macbeth's guilt?", quotes: ["Out, damned spot", "The Thane of Fife had a wife: where is she now?", "Here's the smell of the blood still", "All the perfumes of Arabia will not sweeten this little hand"] },
+        { q: "How does Lady Macbeth's role challenge gender expectations?", quotes: ["Unsex me here", "Come to my woman's breasts and take my milk for gall", "Was the hope drunk wherein you dressed yourself?", "A little water clears us of this deed"] },
+      ],
+      "The Witches": [
+        { q: "How do the witches represent the supernatural and chaos?", quotes: ["Fair is foul and foul is fair", "When shall we three meet again", "Double double toil and trouble", "Something wicked this way comes"] },
+        { q: "How do the witches' prophecies influence Macbeth?", quotes: ["All hail Macbeth, that shalt be king hereafter", "Beware Macduff", "None of woman born shall harm Macbeth", "Macbeth shall never vanquished be until Birnam Wood comes to Dunsinane"] },
+      ],
+      "Banquo": [
+        { q: "How does Shakespeare use Banquo as a foil to Macbeth?", quotes: ["I dreamt last night of the three weird sisters", "Thou hast it now: King, Cawdor, Glamis, all", "In the great hand of God I stand", "Merciful powers, restrain in me the cursèd thoughts"] },
+      ],
+      "Duncan": [
+        { q: "How does Shakespeare present Duncan as a virtuous king?", quotes: ["He was a gentleman on whom I built an absolute trust", "This castle hath a pleasant seat", "I have begun to plant thee", "He's here in double trust"] },
+      ],
+      "Macduff": [
+        { q: "How does Shakespeare present Macduff as a moral force against tyranny?", quotes: ["O Scotland, Scotland!", "He has no children", "Despair thy charm", "Turn, hellhound, turn!"] },
+      ],
+      "Power & Ambition": [
+        { q: "How does Shakespeare explore the corrupting nature of ambition?", quotes: ["Vaulting ambition which o'erleaps itself", "I have no spur to prick the sides of my intent", "Stars, hide your fires", "Thou wouldst be great, art not without ambition"] },
+      ],
+      "Guilt": [
+        { q: "How does guilt manifest as a destructive force throughout the play?", quotes: ["Will all great Neptune's ocean wash this blood clean from my hand?", "Out, damned spot", "Methought I heard a voice cry 'Sleep no more'", "Blood will have blood"] },
+      ],
+      "Gender": [
+        { q: "How does Shakespeare challenge traditional gender roles?", quotes: ["Unsex me here", "Come to my woman's breasts and take my milk for gall", "Bring forth men-children only", "Was the hope drunk wherein you dressed yourself?"] },
+      ],
+      "Appearance vs Reality": [
+        { q: "How is the theme of appearance vs reality explored throughout the play?", quotes: ["Fair is foul and foul is fair", "Look like the innocent flower but be the serpent under't", "Stars, hide your fires", "False face must hide what the false heart doth know"] },
+      ],
+    }
+  },
+  inspector: {
+    label: "An Inspector Calls — Characters & Themes",
+    chars: [
+      { name: "Inspector Goole", role: "mysterious authority" },
+      { name: "Arthur Birling", role: "capitalist patriarch" },
+      { name: "Sybil Birling", role: "social snob" },
+      { name: "Sheila Birling", role: "moral conscience" },
+      { name: "Eric Birling", role: "troubled son" },
+      { name: "Gerald Croft", role: "upper-class" },
+      { name: "Responsibility", role: "theme" },
+      { name: "Class & Inequality", role: "theme" },
+      { name: "Gender", role: "theme" },
+      { name: "Time & Change", role: "theme" },
+    ],
+    questions: {
+      "Inspector Goole": [
+        { q: "How does Priestley present the Inspector as a moral authority?", quotes: ["We are members of one body", "If men will not learn that lesson, then they will be taught it in fire and blood and anguish", "We don't live alone", "I don't play golf"] },
+        { q: "How does the Inspector challenge each character's sense of responsibility?", quotes: ["Each of you helped to kill her", "Public men have responsibilities as well as privileges", "She was desperate and she needed help", "We often do on the young ones"] },
+      ],
+      "Arthur Birling": [
+        { q: "How does Priestley present Birling as representing capitalist greed?", quotes: ["A man has to make his own way", "The Germans don't want war", "Unsinkable, absolutely unsinkable", "Lower costs and higher prices"] },
+        { q: "How does Birling resist accepting responsibility?", quotes: ["I can't accept any responsibility", "She'd had a lot to say, far too much", "If we were all responsible for everything that happened to everybody we'd had anything to do with, it would be very awkward", "I was quite within my rights"] },
+      ],
+      "Sybil Birling": [
+        { q: "How does Priestley present Mrs Birling as cold and prejudiced?", quotes: ["I did my duty", "Girls of that class", "She was claiming elaborate fine feelings", "I consider I did my duty"] },
+      ],
+      "Sheila Birling": [
+        { q: "How does Sheila's character develop throughout the play?", quotes: ["I'll never, never do it again", "You mustn't try to build up a kind of wall between us and that girl", "It frightens me the way you talk", "I suppose we're all nice people now"] },
+      ],
+      "Eric Birling": [
+        { q: "How does Priestley present Eric as a product of his privileged upbringing?", quotes: ["You're not the kind of father a chap could go to when he's in trouble", "I'm ashamed of you", "She didn't want me to marry her", "You never even tried to understand"] },
+      ],
+      "Gerald Croft": [
+        { q: "How does Priestley present Gerald's attitude to class and women?", quotes: ["I didn't feel about her as she felt about me", "She was the most beautiful girl I'd ever seen", "I'm rather more experienced", "Everything's alright now Sheila"] },
+      ],
+      "Responsibility": [
+        { q: "How does Priestley convey the theme of social responsibility?", quotes: ["We are members of one body", "We don't live alone", "Each of you helped to kill her", "If men will not learn that lesson, then they will be taught it in fire and blood and anguish"] },
+      ],
+      "Class & Inequality": [
+        { q: "How does Priestley criticise the class system?", quotes: ["Girls of that class", "Lower costs and higher prices", "A man has to make his own way", "She'd had a lot to say, far too much"] },
+      ],
+      "Gender": [
+        { q: "How does Priestley present gender inequality in 1912?", quotes: ["Girls of that class", "She was the most beautiful girl I'd ever seen", "I'm rather more experienced", "She claimed elaborate fine feelings"] },
+      ],
+      "Time & Change": [
+        { q: "How does Priestley use time and dramatic irony to warn his audience?", quotes: ["If men will not learn that lesson, then they will be taught it in fire and blood and anguish", "The Germans don't want war", "Unsinkable, absolutely unsinkable", "I'll never, never do it again"] },
+      ],
+    }
+  },
+  christmas: {
+    label: "A Christmas Carol — Characters & Themes",
+    chars: [
+      { name: "Scrooge", role: "protagonist" },
+      { name: "Bob Cratchit", role: "employee" },
+      { name: "Tiny Tim", role: "symbol of poverty" },
+      { name: "Fred", role: "Scrooge's nephew" },
+      { name: "Ghost of Christmas Past", role: "spirit" },
+      { name: "Ghost of Christmas Present", role: "spirit" },
+      { name: "Ghost of Christmas Yet to Come", role: "spirit" },
+      { name: "Redemption", role: "theme" },
+      { name: "Poverty & Wealth", role: "theme" },
+      { name: "Christmas Spirit", role: "theme" },
+      { name: "Family", role: "theme" },
+    ],
+    questions: {
+      "Scrooge": [
+        { q: "How does Dickens present Scrooge as a miser at the start of the novella?", quotes: ["Hard and sharp as flint", "Solitary as an oyster", "A squeezing, wrenching, grasping, scraping, clutching, covetous old sinner", "Are there no prisons? No workhouses?"] },
+        { q: "How does Dickens show Scrooge's transformation and redemption?", quotes: ["I am as light as a feather", "I don't know what to do! I am as happy as an angel!", "I will live in the Past, the Present, and the Future", "I will honour Christmas in my heart and try to keep it all the year"] },
+        { q: "How does Dickens use Scrooge to criticise Victorian attitudes to the poor?", quotes: ["Are there no prisons?", "If they would rather die, they had better do it and decrease the surplus population", "It's not my business", "Mankind was my business"] },
+      ],
+      "Bob Cratchit": [
+        { q: "How does Dickens use Bob Cratchit to represent the deserving poor?", quotes: ["Bob had but fifteen bob a week himself", "I'll give you Mr Scrooge, the founder of the feast!", "Bob was very cheerful with them", "Such a bustle ensued that you might have thought a goose the rarest of all birds"] },
+      ],
+      "Tiny Tim": [
+        { q: "How does Dickens use Tiny Tim as a symbol of poverty and hope?", quotes: ["God bless us, every one!", "If these shadows remain unaltered by the Future, the child will die", "I see a vacant seat in the poor chimney corner", "He bore a little crutch"] },
+      ],
+      "Fred": [
+        { q: "How does Dickens use Fred to embody the spirit of Christmas?", quotes: ["Christmas is a kind, forgiving, charitable, pleasant time", "I am sorry for him. I couldn't be angry with him if I tried", "His wealth is of no use to him", "He has the power to render us happy or unhappy"] },
+      ],
+      "Ghost of Christmas Past": [
+        { q: "How does the Ghost of Christmas Past help Scrooge reflect on his life choices?", quotes: ["These are but shadows of the things that have been", "I wear the chain I forged in life", "A solitary child, neglected by his friends, is left there still", "Your welfare was my business"] },
+      ],
+      "Ghost of Christmas Present": [
+        { q: "How does the Ghost of Christmas Present reveal social inequality?", quotes: ["This boy is Ignorance, this girl is Want", "Beware them both", "Most of all beware this boy, for on his brow I see that written which is Doom", "Are there no prisons? Are there no workhouses?"] },
+      ],
+      "Ghost of Christmas Yet to Come": [
+        { q: "How does the final Ghost create fear and bring about Scrooge's transformation?", quotes: ["Are these the shadows of the things that will be or the shadows of things that may be?", "Men's courses will foreshadow certain ends", "I see a vacant seat", "Phantom, I am not the man I was"] },
+      ],
+      "Redemption": [
+        { q: "How does Dickens present the theme of redemption?", quotes: ["I will honour Christmas in my heart", "I am not the man I was", "I will live in the Past, the Present, and the Future", "Heaven and the Christmas time be praised for this"] },
+      ],
+      "Poverty & Wealth": [
+        { q: "How does Dickens criticise Victorian attitudes to poverty?", quotes: ["Are there no prisons?", "This boy is Ignorance, this girl is Want", "Bob had but fifteen bob a week", "If they would rather die, they had better do it and decrease the surplus population"] },
+      ],
+      "Christmas Spirit": [
+        { q: "How does Dickens use Christmas to convey his moral message?", quotes: ["Christmas is a kind, forgiving, charitable, pleasant time", "I will honour Christmas in my heart", "God bless us, every one!", "He has the power to render us happy or unhappy"] },
+      ],
+      "Family": [
+        { q: "How does family function as a moral contrast to Scrooge's isolation?", quotes: ["I'll give you Mr Scrooge, the founder of the feast!", "Bob was very cheerful with them", "I couldn't be angry with him if I tried", "God bless us, every one!"] },
+      ],
+    }
+  },
+  poetry: {
+    label: "Poetry — WJEC Eduqas Anthology",
+    poems: [
+      { title: "The Manhunt", poet: "Simon Armitage" },
+      { title: "Sonnet 43", poet: "Elizabeth Barrett Browning" },
+      { title: "London", poet: "William Blake" },
+      { title: "The Soldier", poet: "Rupert Brooke" },
+      { title: "She Walks in Beauty", poet: "Lord Byron" },
+      { title: "Living Space", poet: "Imtiaz Dharker" },
+      { title: "As Imperceptibly as Grief", poet: "Emily Dickinson" },
+      { title: "Cozy Apologia", poet: "Rita Dove" },
+      { title: "Valentine", poet: "Carol Ann Duffy" },
+      { title: "A Wife in London", poet: "Thomas Hardy" },
+      { title: "Death of a Naturalist", poet: "Seamus Heaney" },
+      { title: "Hawk Roosting", poet: "Ted Hughes" },
+      { title: "To Autumn", poet: "John Keats" },
+      { title: "Afternoons", poet: "Philip Larkin" },
+      { title: "Dulce et Decorum Est", poet: "Wilfred Owen" },
+      { title: "Ozymandias", poet: "Percy Bysshe Shelley" },
+      { title: "Mametz Wood", poet: "Owen Sheers" },
+      { title: "Excerpt from The Prelude", poet: "William Wordsworth" },
+    ],
+    questions: {
+      "The Manhunt": [
+        { q: "How does Armitage present the psychological and physical effects of war on a soldier?", quotes: ["the parachute silk of his punctured lung", "he traced the scarring back to the source", "only then would he let me explore the blown hinge of his lower jaw", "a sweating, unexploded mine"] },
+        { q: "How does Armitage present the wife's devotion and love?", quotes: ["only then could I bind the struts and climb the rungs of his broken ribs", "he let me come close", "the damaged, porcelain collar-bone", "the foetus of metal beneath his chest"] },
+      ],
+      "Sonnet 43": [
+        { q: "How does Barrett Browning express the depth and intensity of her love?", quotes: ["How do I love thee? Let me count the ways", "I love thee to the depth and breadth and height", "I love thee with the breath, smiles, tears of all my life", "I shall but love thee better after death"] },
+      ],
+      "London": [
+        { q: "How does Blake present London as a city of oppression and suffering?", quotes: ["In every cry of every man", "mind-forged manacles", "the Chimney-sweeper's cry", "the youthful Harlot's curse"] },
+        { q: "How does Blake use his poem to criticise institutions of power?", quotes: ["mind-forged manacles", "How the Church's black'ning Church appals", "the Soldier's sigh runs in blood down Palace walls", "the Marriage hearse"] },
+      ],
+      "The Soldier": [
+        { q: "How does Brooke present a patriotic and idealised view of death in war?", quotes: ["If I should die, think only this of me", "There shall be in that rich earth a richer dust concealed", "A dust whom England bore, shaped, made aware", "Her sights and sounds; dreams happy as her day"] },
+      ],
+      "She Walks in Beauty": [
+        { q: "How does Byron present female beauty through the contrast of light and dark?", quotes: ["She walks in beauty, like the night", "Of cloudless climes and starry skies", "One shade the more, one ray the less", "And all that's best of dark and bright"] },
+      ],
+      "Living Space": [
+        { q: "How does Dharker explore hope and fragility in the face of poverty?", quotes: ["There are just not enough", "eggs in a wire basket", "bright and precarious", "the whole structure leans dangerously"] },
+      ],
+      "As Imperceptibly as Grief": [
+        { q: "How does Dickinson use grief as an extended metaphor for loss?", quotes: ["As imperceptibly as Grief", "The Summer lapsed away", "A courteous, yet harrowing Grace", "Our Summer made her light escape"] },
+      ],
+      "Cozy Apologia": [
+        { q: "How does Dove explore the nature of romantic love and contentment?", quotes: ["I could pick anything and think of you", "Fred, bonding another line of verse to set the evening air", "Hurricane Floyd is nudging up the coast", "how I love"] },
+      ],
+      "Valentine": [
+        { q: "How does Duffy present an unconventional view of love?", quotes: ["Not a red rose or a satin heart", "I give you an onion", "It is a moon wrapped in brown paper", "Its fierce kiss will stay on your lips"] },
+        { q: "How does Duffy explore the darker and more complex side of love?", quotes: ["Lethal", "Its scent will cling to your fingers, cling to your knife", "Take it", "I am trying to be truthful"] },
+      ],
+      "A Wife in London": [
+        { q: "How does Hardy present the cruelty of war and its devastating effect on those left behind?", quotes: ["She sits in the tawny vapour", "The fog hangs thicker", "His hand, whom the worm now knows", "Fresh from its foreign shore"] },
+      ],
+      "Death of a Naturalist": [
+        { q: "How does Heaney present the loss of childhood innocence?", quotes: ["The warm thick slobber of frogspawn", "The slap and plop were obscene threats", "I sickened, turned, and ran", "the great slime kings were gathered there for vengeance"] },
+      ],
+      "Hawk Roosting": [
+        { q: "How does Hughes present power and control through the hawk's perspective?", quotes: ["I kill where I please because it is all mine", "My manners are tearing off heads", "The convenience of the high trees", "I am going to keep things like this"] },
+        { q: "How does Hughes use the hawk as a metaphor for tyranny and arrogance?", quotes: ["I sit in the top of the wood, my eyes closed", "It took the whole of Creation to produce my foot", "No arguments assert my right", "My feet are locked upon the rough bark"] },
+      ],
+      "To Autumn": [
+        { q: "How does Keats celebrate the sensory beauty of the autumn season?", quotes: ["Season of mists and mellow fruitfulness", "To bend with apples the moss'd cottage-trees", "Thou watchest the last oozings hours by hours", "While barred clouds bloom the soft-dying day"] },
+      ],
+      "Afternoons": [
+        { q: "How does Larkin present a sense of lost identity and encroaching time?", quotes: ["Something is pushing them to the side of their own lives", "their beauty has thickened", "the wind is ruining their courting places", "Setting free their children"] },
+      ],
+      "Dulce et Decorum Est": [
+        { q: "How does Owen present the physical horror and reality of war?", quotes: ["Bent double, like old beggars under sacks", "Gas! GAS! Quick, boys!", "the white eyes writhing in his face", "the blood-shod"] },
+        { q: "How does Owen challenge the propaganda that dying for your country is glorious?", quotes: ["Dulce et decorum est pro patria mori", "My friend, you would not tell with such high zest", "the old Lie", "In all my dreams before my helpless sight he plunges at me"] },
+      ],
+      "Ozymandias": [
+        { q: "How does Shelley present the transience of power and human arrogance?", quotes: ["My name is Ozymandias, King of Kings", "Look on my works, ye Mighty, and despair!", "Nothing beside remains", "The lone and level sands stretch far away"] },
+        { q: "How does Shelley use the ruined statue as a central symbol?", quotes: ["Two vast and trunkless legs of stone", "a shattered visage lies", "The hand that mocked them and the heart that fed", "the sculptor well those passions read"] },
+      ],
+      "Mametz Wood": [
+        { q: "How does Sheers honour and memorialise the soldiers of World War One?", quotes: ["their spent arches", "the china plate of a shoulder blade", "a broken mosaic of bone", "twenty men buried in one long grave"] },
+        { q: "How does Sheers present the lasting and haunting legacy of war?", quotes: ["For years afterwards the farmers found them", "the socketed rudder of a shoulder blade", "a row of huddled presents", "the earth stands sentinel"] },
+      ],
+      "Excerpt from The Prelude": [
+        { q: "How does Wordsworth present the power and sublimity of nature?", quotes: ["the huge peak, black and huge", "as if with voluntary power instinct", "upreared its head", "like a living thing"] },
+        { q: "How does Wordsworth explore the idea of nature as a moral teacher?", quotes: ["I struck and struck again", "with purpose of its own and measured motion like a living thing", "my brain worked with a dim and undetermined sense of unknown modes of being", "huge and mighty forms that do not live like living men"] },
+      ],
+    }
+  }
+};
+
+let currentSubject = null;
+let currentChar = null;
+let currentQuestions = [];
+let currentQIndex = 0;
+let sessionScore = 0;
+let sessionTotal = 0;
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function updateScoreBar() {
+  const pct = sessionTotal === 0 ? 0 : Math.round((sessionScore / sessionTotal) * 100);
+  document.getElementById('score-fill').style.width = pct + '%';
+  document.getElementById('score-display').textContent = sessionScore + ' / ' + sessionTotal;
+}
+
+function goHome() {
+  currentSubject = null; currentChar = null;
+  showScreen('screen-home');
+  document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('active'));
+}
+
+function goChars() { showScreen('screen-chars'); }
+
+function selectSubject(key, el) {
+  currentSubject = key;
+  const data = DATA[key];
+  document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('chars-label').textContent = data.label;
+
+  const grid = document.getElementById('chars-grid');
+  const poemSection = document.getElementById('poem-section');
+
+  if (key === 'poetry') {
+    grid.innerHTML = ''; grid.style.display = 'none';
+    poemSection.style.display = 'block';
+    const pg = document.getElementById('poem-grid');
+    pg.innerHTML = data.poems.map(p =>
+      `<button class="poem-btn" onclick="selectPoem(this,'${p.title.replace(/'/g,"\\'")}')">${p.title}<span class="poet">${p.poet}</span></button>`
+    ).join('');
+  } else {
+    poemSection.style.display = 'none';
+    grid.style.display = 'grid';
+    grid.innerHTML = data.chars.map(c =>
+      `<button class="char-btn" onclick="selectChar(this,'${c.name.replace(/'/g,"\\'")}')">${c.name}<span class="char-role">${c.role}</span></button>`
+    ).join('');
+  }
+  showScreen('screen-chars');
+}
+
+function selectPoem(el, title) {
+  document.querySelectorAll('.poem-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  startQuestions(title);
+}
+
+function selectChar(el, name) {
+  document.querySelectorAll('.char-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  startQuestions(name);
+}
+
+function startQuestions(key) {
+  currentChar = key;
+  const qs = DATA[currentSubject].questions[key];
+  if (!qs || qs.length === 0) return;
+  currentQuestions = qs;
+  currentQIndex = 0;
+  loadQuestion();
+  showScreen('screen-question');
+}
+
+function loadQuestion() {
+  const q = currentQuestions[currentQIndex];
+  document.getElementById('q-num').textContent = currentQIndex + 1;
+  document.getElementById('q-total').textContent = currentQuestions.length;
+  document.getElementById('q-text').textContent = q.q;
+  ['q1','q2','q3'].forEach(id => {
+    const el = document.getElementById(id);
+    el.value = ''; el.className = 'quote-input'; el.style.height = 'auto';
+  });
+  document.getElementById('feedback-panel').className = 'feedback-panel';
+  document.getElementById('feedback-panel').innerHTML = '';
+
+  const dots = document.getElementById('progress-dots');
+  dots.innerHTML = currentQuestions.map((_, i) =>
+    `<div class="dot ${i < currentQIndex ? 'done' : i === currentQIndex ? 'current' : ''}"></div>`
+  ).join('');
+}
+
+function similarity(a, b) {
+  a = a.toLowerCase().trim(); b = b.toLowerCase().trim();
+  if (b.includes(a) || a.includes(b)) return 1;
+  const wordsA = a.split(/\s+/), wordsB = b.split(/\s+/);
+  const matches = wordsA.filter(w => w.length > 3 && wordsB.some(wb => wb.includes(w) || w.includes(wb)));
+  return matches.length / Math.max(wordsA.length, 1);
+}
+
+function checkQuotes() {
+  const inputs = ['q1','q2','q3'].map(id => document.getElementById(id).value);
+  const answers = currentQuestions[currentQIndex].quotes;
+  const feedback = document.getElementById('feedback-panel');
+  let html = '';
+  let correct = 0;
+
+  inputs.forEach((inp, i) => {
+    const id = ['q1','q2','q3'][i];
+    if (!inp.trim()) {
+      document.getElementById(id).className = 'quote-input';
+      html += `<div class="feedback-item"><span class="fb-label">Quote ${i+1}:</span> <span style="color:var(--text-faint)">No answer given</span></div>`;
+      return;
+    }
+    const bestMatch = answers.reduce((best, ans) => {
+      const s = similarity(inp, ans);
+      return s > best.score ? { score: s, ans } : best;
+    }, { score: 0, ans: '' });
+
+    const isCorrect = bestMatch.score > 0.42;
+    document.getElementById(id).className = 'quote-input ' + (isCorrect ? 'correct' : 'incorrect');
+    if (isCorrect) correct++;
+    html += `<div class="feedback-item"><span class="${isCorrect ? 'tick' : 'cross'}">${isCorrect ? '✓' : '✗'}</span> <span class="fb-label">Quote ${i+1}:</span> ${isCorrect ? 'Good match!' : 'Closest: <span class="answer-text">"' + bestMatch.ans + '"</span>'}</div>`;
+  });
+
+  sessionScore += correct; sessionTotal += 3;
+  updateScoreBar();
+  feedback.innerHTML = html;
+  feedback.className = 'feedback-panel show';
+}
+
+function revealAll() {
+  const answers = currentQuestions[currentQIndex].quotes;
+  const feedback = document.getElementById('feedback-panel');
+  feedback.innerHTML = '<div class="reveal-heading">Key quotes for this question:</div>' +
+    answers.map(a => `<div class="feedback-item"><span class="answer-text">"${a}"</span></div>`).join('');
+  feedback.className = 'feedback-panel show';
+}
+
+function nextQuestion() {
+  currentQIndex = (currentQIndex + 1) % currentQuestions.length;
+  loadQuestion();
+}
+</script>
+</body>
+</html>
